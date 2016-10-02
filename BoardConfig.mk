@@ -1,6 +1,5 @@
 # inherit from the proprietary version
 -include vendor/bq/krillin/BoardConfigVendor.mk
-
 LOCAL_PATH := device/bq/krillin
 
 # Board

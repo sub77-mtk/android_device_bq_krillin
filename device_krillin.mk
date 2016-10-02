@@ -77,7 +77,6 @@ PRODUCT_PACKAGES += \
     fstab.mt6582 \
     init.recovery.mt6582.rc \
     init.mt6582.rc \
-    init.mt6582_common.rc \
     init.modem.rc \
     ueventd.mt6582.rc \
     init.mt6582.usb.rc \
