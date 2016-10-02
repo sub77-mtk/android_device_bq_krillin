@@ -1,4 +1,4 @@
-# platform specific configuration items
+#MEDIATEK Common platform specific configuration items
 import /init.mt6582.usb.rc
 import /init.modem.rc
 
@@ -7,16 +7,28 @@ on early-init
     setprop ro.mtk.hardware mt6582
 
 on init
+
+# See storage config details at http://source.android.com/tech/storage/
+    mkdir /storage/sdcard 0555 root root
+ 
+    # Support legacy paths
+    symlink storage/sdcard /sdcard
+    symlink storage/sdcard /mnt/sdcard
+
+on charger
+    mount ext4 /emmc@android /system ro wait
+    start drvbd
+    start ipod
+    start servicemanager
+
+    # disable USB
+    write /sys/devices/platform/mt_usb/cmode 0
+
+on init
     export LD_PRELOAD "/system/lib/libxlog.so /system/lib/libmt6582.so"
     
     mkdir /protect_f 0771 system system
     mkdir /protect_s 0771 system system
-# See storage config details at http://source.android.com/tech/storage/
-    mkdir /storage/sdcard 0555 root root
-
-    # Support legacy paths
-    symlink storage/sdcard /sdcard
-    symlink storage/sdcard /mnt/sdcard
 
     # Change ION driver permission
     chmod 0666 /dev/ion
@@ -31,7 +43,7 @@ on init
     chown gps gps /sys/class/gpsdrv/gps/state
     chown gps gps /sys/class/gpsdrv/gps/pwrsave
     chown gps gps /sys/class/gpsdrv/gps/status
-	
+
 # mount different fs start
 
 on fs
@@ -72,7 +84,7 @@ service ipod /system/bin/ipod
     user root
     group root
     class ipo
-	
+
 # mount different fs end
 
 on post-fs
@@ -81,18 +93,19 @@ on post-fs
     chown system system /dev/wmtWifi
 
     exec /system/bin/mknod /dev/Vcodec c 160 0
-    chmod 0660 /dev/Vcodec
+    chmod 0666 /dev/Vcodec
     chown system media /dev/Vcodec
 
     exec /system/bin/mknod /dev/stpwmt c 190 0
     exec /system/bin/mknod /dev/stpgps c 191 0
-    
     exec /system/bin/mknod /dev/stpbt  c 192 0
+
     # GPS
     chmod 0666 /dev/gps
     chown system gps /dev/gps
     chmod 0660 /dev/stpgps
     chown gps gps /dev/stpgps
+
     chmod 0660 /dev/stpbt
     chown bluetooth radio /dev/stpbt
 
@@ -102,7 +115,10 @@ on post-fs
     chmod 0660 /dev/wmtdetect
     chown system system /dev/wmtdetect
 
-    mkdir /data/nvram 2770 root nvram
+    mkdir /data/nvram 0770 media system
+    mkdir /data/nvram/APCFG 0770 media system
+    mkdir /data/nvram/APCFG/APRDCL 0770 media system
+    mkdir /data/nvram/APCFG/APRDEB 0770 media system
     chmod 0770 /dev/nvram
 
     chown ccci ccci /sys/kernel/ccci/boot
@@ -197,11 +213,11 @@ on post-fs-data
     mkdir /dev/radio 0770 radio radio
     start adbd
 
-# GPS
+    # GPS
     mkdir /data/agps_supl 0771 gps system
     mkdir /data/gps_mnl 0771 gps system
-
     mkdir /data/misc/gps 0770 gps gps
+
 # -----------------------
 # Add by MTK
 
@@ -265,6 +281,7 @@ on post-fs-data
     chown system system /dev/gsensor
     chown system system /dev/alsps
     chown system system /dev/aal_als
+
     # Add for G-sensor
     chmod 0660 /sys/devices/platform/gsensor/driver/cpsdata
     chmod 0660 /sys/devices/platform/gsensor/driver/cpsrange
@@ -280,6 +297,7 @@ on post-fs-data
     chown system system /sys/devices/platform/gsensor/driver/fifo_mode
     chown system system /sys/devices/platform/gsensor/driver/fifo_data_frame
     chown system system /sys/devices/platform/gsensor/driver/fifo_framecount
+
     # Add for M-sensor
     chmod 0660 /sys/devices/platform/msensor/driver/cpsdata
     chmod 0660 /sys/devices/platform/msensor/driver/cpsopmode
@@ -289,6 +307,7 @@ on post-fs-data
     chown system system /sys/devices/platform/msensor/driver/cpsopmode
     chown system system /sys/devices/platform/msensor/driver/cpsreptxy
     chown system system /sys/devices/platform/msensor/driver/cpsreptz
+
     # Add for support new arch
     chmod 0660 /sys/class/misc/m_acc_misc/accenablenodata
     chmod 0660 /sys/class/misc/m_acc_misc/accactive
@@ -370,7 +389,6 @@ on post-fs-data
     chmod 0660 /dev/Vcodec
     chown media media /dev/Vcodec
 
-    insmod /system/lib/modules/bma2xx.ko
     #kpd
     chown radio radio /sys/devices/platform/mtk-kpd/driver/kpd_call_state
 
@@ -471,14 +489,9 @@ on post-fs-data
     chmod 0660 /dev/kd_camera_hw
     chmod 0660 /dev/kd_camera_flashlight
     chmod 0660 /dev/kd_camera_hw_bus2
-    chmod 0660 /dev/FM50AF    
-    chmod 0660 /dev/DW9714AF
-    chmod 0660 /dev/DW9718AF    
-    chmod 0660 /dev/GAF001AF
-    chmod 0660 /dev/GAF002AF
-    chmod 0660 /dev/GAF008AF
+    chmod 0660 /dev/FM50AF
+    chmod 0660 /dev/OV8858AF    
     chmod 0660 /dev/CAM_CAL_DRV
-    chmod 0660 /dev/EEPROM_M24C08F
 
     chown system camera /dev/camera-sysram
     chown system camera /dev/camera-isp
@@ -486,14 +499,9 @@ on post-fs-data
     chown system camera /dev/kd_camera_hw
     chown system camera /dev/kd_camera_flashlight
     chown system camera /dev/kd_camera_hw_bus2
-    chown system camera /dev/FM50AF    
-    chown system camera /dev/DW9714AF
-    chown system camera /dev/DW9718AF    
-    chown system camera /dev/GAF001AF
-    chown system camera /dev/GAF002AF
-    chown system camera /dev/GAF008AF
+    chown system camera /dev/FM50AF
+    chown system camera /dev/OV8858AF
     chown system camera /dev/CAM_CAL_DRV
-    chown system camera /dev/EEPROM_M24C08F
 
     #MATV
     chmod 0660 /dev/MATV
@@ -520,8 +528,12 @@ on post-fs-data
 
     #mtk_sched
     chmod 0660 /dev/mtk_sched
-    chown system media /dev/mtk_sched
+    chown system camera /dev/mtk_sched
+    chown system camera /sys/bus/platform/drivers/mem_bw_ctrl/concurrency_scenario
+    chmod 0660 /sys/bus/platform/drivers/mem_bw_ctrl/concurrency_scenario
 
+    chown system media /proc/M4U_device
+    chmod 0666 /proc/M4U_device
     chmod 666 /dev/mali
     chown system graphics /dev/mali
 
@@ -543,12 +555,9 @@ on post-fs-data
     chown system system /dev/ttyMT2
 
 
-
-
 #
 # Connectivity related device nodes & configuration (end)
 #
-
 
 
 # Encrypt phone function
@@ -574,6 +583,7 @@ on boot
     write /proc/sys/vm/dirty_writeback_centisecs 300
 
     chmod 0660 /sys/power/autosleep
+
     chmod 0664 /sys/class/leds/lcd-backlight/brightness
 
     chown system system /sys/devices/system/cpu/cpufreq/hotplug/cpu_num_base
@@ -595,18 +605,22 @@ on boot
     chown system system /sys/class/leds/green/trigger
     chown system system /sys/class/leds/blue/trigger
 
+    chmod 0664 /sys/class/leds/greenled/brightness
+    chown system system /sys/class/leds/greenled/brightness
+    chmod 0664 /sys/class/leds/greenled/trigger
+    chown system system /sys/class/leds/greenled/trigger
+
     # Permission for hibernation
     chown radio system /sys/power/tuxonice
     chown radio system /sys/power/tuxonice/do_hibernate
     chmod 0770 /sys/power/tuxonice
-    chmod 0220 /sys/power/tuxonice/do_hibernate
-
+    chmod 0220 /sys/power/tuxonice/do_hibernate	
+	
     # FM Radio device node
     exec /system/bin/mknod /dev/fm c 193 0
     chmod 0777 /dev/fm
     chown system media /dev/fm
-
-
+	
 ## Thermal
   #change permissions on thermal devices
   chown root system /proc/mtktscpu/mtktscpu
@@ -687,7 +701,7 @@ on property:vold.decrypt=trigger_restart_framework
     
 on property:vold.decrypt=trigger_shutdown_framework
     start stop_modem
-    start msensord
+
 service stop_modem /system/bin/md_ctrl 0
     class main
     disabled
@@ -791,33 +805,6 @@ service wpa_supplicant /system/bin/wpa_supplicant -dd \
     oneshot
 
 
-service dhcpcd_bt-pan /system/bin/dhcpcd -A -BK -dd
-    class main
-    user dhcp
-    group net_admin net_raw
-    disabled
-    oneshot
-
-service dhcpcd_wlan0 /system/bin/dhcpcd -aABDKL
-    class late_start
-    disabled
-    oneshot
-
-service dhcpcd_p2p /system/bin/dhcpcd -aABKL
-    class late_start
-    disabled
-    oneshot
-
-service iprenew_wlan0 /system/bin/dhcpcd -n
-    class late_start
-    disabled
-    oneshot
-
-service iprenew_p2p /system/bin/dhcpcd -n
-    class late_start
-    disabled
-    oneshot
-
 service drvbd /system/bin/drvbd
     class main
     user system
@@ -845,8 +832,6 @@ service bluetoothd /system/bin/bluetoothd -n
 #
 #  External Modme control related services
 #
-
-
     
 service mdlogger /system/bin/mdlogger
     class main
@@ -877,12 +862,6 @@ service msensord /system/bin/msensord
     class main
     oneshot
 
-service s62xd /system/bin/s62xd
-    disabled
-    user compass
-    group system
-    class main
-
 service ami304d /system/bin/ami304d
     user system
     group system
@@ -894,14 +873,6 @@ service memsicd /system/bin/memsicd
      oneshot
     user system
     group system
-    class main
-
-service memsicd3416x /system/bin/memsicd3416x
-     disabled
-	 user system
-    group system
-    class main
-    oneshot
 
 service akmd8975 /system/bin/akmd8975
     disabled
@@ -927,13 +898,6 @@ service mc6420d /system/bin/mc6420d
     disabled
     user system
     group system
-    class main
-    
-service qmc5983d /system/bin/qmc5983d
-     disabled
-	 user system
-    group system
-    class main
 
 service orientationd /system/bin/orientationd
     disabled

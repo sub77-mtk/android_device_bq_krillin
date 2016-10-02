@@ -1,11 +1,14 @@
+## Specify phone tech before including full_phone
+
 # Release name
 PRODUCT_RELEASE_NAME := krillin
 
 # Inherit some common CM stuff.
-$(call inherit-product, vendor/cm/config/common_full_phone.mk)
+$(call inherit-product, vendor/cm/config/common_full.mk)
 
-# Inherit device configuration
-$(call inherit-product, device/bq/krillin/device_krillin.mk)
+# Inherit from hardware-specific part of the product configuration
+$(call inherit-product, device/bq/krillin/device.mk)
+$(call inherit-product-if-exists, vendor/bq/krillin/krillin-vendor.mk)
 
 ## Device identifier. This must come after all inclusions
 PRODUCT_DEVICE := krillin
@@ -14,4 +17,4 @@ PRODUCT_BRAND := bq
 PRODUCT_MODEL := Aquaris E45
 PRODUCT_MANUFACTURER := bq
 
-##PRODUCT_BUILD_PROP_OVERRIDES += BUILD_FINGERPRINT=6.0/MRA58M/2280749:user/release-keys PRIVATE_BUILD_DESC="mt6582-user 6.0 MRA58M 2280749 release-keys"
+PRODUCT_GMS_CLIENTID_BASE := android-mediatek

@@ -61,7 +61,7 @@ void healthd_board_mode_charger_draw_battery(
     snprintf(cap_str, (STR_LEN - 1), "%d%%", batt_prop->batteryLevel);
     str_len_px = gr_measure(cap_str);
     x = (gr_fb_width() - str_len_px) / 2;
-    y = (gr_fb_height() + char_height) / 1.5;
+    y = (gr_fb_height() + char_height) / 2;
     gr_color(0xa4, 0xc6, 0x39, 255);
     gr_text(x, y, cap_str, 0);
 }
@@ -137,4 +137,3 @@ int healthd_board_battery_update(struct android::BatteryProperties*)
     // return 0 to log periodic polled battery status to kernel log
     return 1;
 }
-

@@ -10,3 +10,7 @@ ALL_PREBUILT += $(INSTALLED_KERNEL_TARGET)
 # copy keylayout overrides
 $(shell mkdir -p $(TARGET_OUT_KEYLAYOUT); \
     cp -pf device/bq/krillin/keylayout/Generic.kl $(TARGET_OUT_KEYLAYOUT))
+
+# copy permissions overrides
+$(shell mkdir -p $(TARGET_OUT_ETC)/permissions; \
+    cp -pf device/bq/krillin/configs/android.hardware.camera.xml $(TARGET_OUT_ETC)/permissions)

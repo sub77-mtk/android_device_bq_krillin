@@ -1,5 +1,3 @@
-ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),mt6582)
-
 LOCAL_PATH := $(call my-dir)
 
 ##### For Google SUPPLICANT
@@ -53,7 +51,5 @@ LOCAL_C_INCLUDES := $(WPA_SUPPL_DIR_INCLUDE)
 include $(BUILD_STATIC_LIBRARY)
 
 ########################
-
-endif
 
 endif

@@ -254,6 +254,7 @@ index 0000000..84616f7
 +} // namespace
 +
 
+
 From a12a8b2a99dec8c8eb16dc0ee97cdbba21710675 Mon Sep 17 00:00:00 2001
 From: ferhung-mtk <ferhung27@gmail.com>
 Date: Sat, 9 Jul 2016 17:41:51 +0800
@@ -333,103 +334,6 @@ index 19dde83..61a4fdc 100644
              if (fakeStride) {
                  // MAJOR HACK that is not pretty, it's just to fool the renderer to read the correct
 
-
-
-From 9a8ad1f25ee64963c04cf2a31e27e6911fbf631e Mon Sep 17 00:00:00 2001
-From: ferhung-mtk <ferhung27@gmail.com>
-Date: Sat, 9 Jul 2016 17:43:53 +0800
-Subject: [PATCH] MediaTek: add USE_LEGACY_MTK_AV_BLOB.
-
----
- media/libstagefright/include/OMXNodeInstance.h |  3 +++
- media/libstagefright/omx/Android.mk            |  6 ++++++
- media/libstagefright/omx/OMXNodeInstance.cpp   | 23 +++++++++++++++++++++++
- 3 files changed, 32 insertions(+)
-
-diff --git a/media/libstagefright/include/OMXNodeInstance.h b/media/libstagefright/include/OMXNodeInstance.h
-index a19d2b3..6b120d9 100644
---- a/media/libstagefright/include/OMXNodeInstance.h
-+++ b/media/libstagefright/include/OMXNodeInstance.h
-@@ -161,10 +161,13 @@ struct OMXNodeInstance {
-     };
-     Vector<ActiveBuffer> mActiveBuffers;
-     // for buffer ptr to buffer id translation
-+    // but don't enable for use with MTK Lollipop- blob
-+#ifndef USE_LEGACY_MTK_AV_BLOB
-     Mutex mBufferIDLock;
-     uint32_t mBufferIDCount;
-     KeyedVector<OMX::buffer_id, OMX_BUFFERHEADERTYPE *> mBufferIDToBufferHeader;
-     KeyedVector<OMX_BUFFERHEADERTYPE *, OMX::buffer_id> mBufferHeaderToBufferID;
-+#endif
-     MetadataBufferType mMetadataType[2];
- 
-     // For debug support
-diff --git a/media/libstagefright/omx/Android.mk b/media/libstagefright/omx/Android.mk
-index d16d5df..31a0c4f 100644
---- a/media/libstagefright/omx/Android.mk
-+++ b/media/libstagefright/omx/Android.mk
-@@ -36,6 +36,12 @@ ifeq ($(strip $(AUDIO_FEATURE_ENABLED_EXTN_FLAC_DECODER)),true)
- endif
- endif
- 
-+ifeq ($(BOARD_HAS_MTK_HARDWARE),true)
-+ifeq ($(BOARD_USES_LEGACY_MTK_AV_BLOB),true)
-+LOCAL_CFLAGS += -DUSE_LEGACY_MTK_AV_BLOB
-+endif
-+endif
-+
- LOCAL_MODULE:= libstagefright_omx
- LOCAL_CFLAGS += -Werror -Wall
- LOCAL_CLANG := true
-diff --git a/media/libstagefright/omx/OMXNodeInstance.cpp b/media/libstagefright/omx/OMXNodeInstance.cpp
-index 2d5f09d..4d299fa 100644
---- a/media/libstagefright/omx/OMXNodeInstance.cpp
-+++ b/media/libstagefright/omx/OMXNodeInstance.cpp
-@@ -192,8 +192,12 @@ OMXNodeInstance::OMXNodeInstance(
-     : mOwner(owner),
-       mNodeID(0),
-       mHandle(NULL),
-+#ifndef USE_LEGACY_MTK_AV_BLOB
-       mObserver(observer),
-       mBufferIDCount(0)
-+#else
-+      mObserver(observer)
-+#endif
- {
-     mName = ADebug::GetDebugName(name);
-     DEBUG = ADebug::GetDebugLevelFromProperty(name, "debug.stagefright.omx-debug");
-@@ -1604,6 +1608,7 @@ void OMXNodeInstance::freeActiveBuffers() {
-     }
- }
- 
-+#ifndef USE_LEGACY_MTK_AV_BLOB
- OMX::buffer_id OMXNodeInstance::makeBufferID(OMX_BUFFERHEADERTYPE *bufferHeader) {
-     if (bufferHeader == NULL) {
-         return 0;
-@@ -1660,5 +1665,23 @@ void OMXNodeInstance::invalidateBufferID(OMX::buffer_id buffer) {
-     mBufferHeaderToBufferID.removeItem(mBufferIDToBufferHeader.valueAt(index));
-     mBufferIDToBufferHeader.removeItemsAt(index);
- }
-+#else
-+
-+OMX::buffer_id OMXNodeInstance::makeBufferID(OMX_BUFFERHEADERTYPE *bufferHeader) {
-+    return (OMX::buffer_id)bufferHeader;
-+}
-+
-+OMX_BUFFERHEADERTYPE *OMXNodeInstance::findBufferHeader(OMX::buffer_id buffer) {
-+    return (OMX_BUFFERHEADERTYPE *)buffer;
-+}
-+
-+OMX::buffer_id OMXNodeInstance::findBufferID(OMX_BUFFERHEADERTYPE *bufferHeader) {
-+    return (OMX::buffer_id)bufferHeader;
-+}
-+
-+void OMXNodeInstance::invalidateBufferID(OMX::buffer_id buffer __unused) {
-+}
-+
-+#endif
- 
- }  // namespace android
 
 
 From 190b35b4d03a49c71839efba189ed49b68fdc407 Mon Sep 17 00:00:00 2001
@@ -1262,33 +1166,41 @@ index af46d63..efed5a2 100644
              client->handlePreviewData(msgType, dataPtr, metadata);
 
 
-<<<<<<< HEAD
-From 854f9b31faea245e1e2556fe9cc5ea0923525384 Mon Sep 17 00:00:00 2001
-From: tandob-device <kalpanasahaaa@gmail.com>
-Date: Sat, 13 Aug 2016 09:36:00 +0530
-Subject: [PATCH] fix for build
 
+From 3f07cb5a9551ea8993bfdd9cdba762b7fd29945d Mon Sep 17 00:00:00 2001
+From: fire855 <thefire855@gmail.com>
+Date: Fri, 22 Apr 2016 22:52:01 +0200
+Subject: [PATCH] Fix FM volume control
+
+Change-Id: Ie56820e540e738f0fcd14276dcda89f199166d65
 ---
- media/libstagefright/omx/OMXNodeInstance.cpp | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ services/audioflinger/AudioFlinger.cpp | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/media/libstagefright/omx/OMXNodeInstance.cpp b/media/libstagefright/omx/OMXNodeInstance.cpp
-index 9975e3b..fb17ad4 100644
---- a/media/libstagefright/omx/OMXNodeInstance.cpp
-+++ b/media/libstagefright/omx/OMXNodeInstance.cpp
-@@ -1706,7 +1706,7 @@ OMX::buffer_id OMXNodeInstance::makeBufferID(OMX_BUFFERHEADERTYPE *bufferHeader)
-     return (OMX::buffer_id)(size_t)bufferHeader;
+diff --git a/services/audioflinger/AudioFlinger.cpp b/services/audioflinger/AudioFlinger.cpp
+index 23215dd..2e1b6bb 100644
+--- a/services/audioflinger/AudioFlinger.cpp
++++ b/services/audioflinger/AudioFlinger.cpp
+@@ -989,6 +989,18 @@ status_t AudioFlinger::setStreamVolume(audio_stream_type_t stream, float value,
+         thread->setStreamVolume(stream, value);
+     }
+ 
++#ifdef MTK_HARDWARE
++    // MTK FM Volume
++    if(stream == AUDIO_STREAM_MUSIC) {
++        sp<ThreadBase> thread;
++        thread = checkPlaybackThread_l(output);
++        if (thread == primaryPlaybackThread_l()) {
++            audio_hw_device_t *dev = mPrimaryHardwareDev->hwDevice();
++            dev->set_parameters (dev, String8::format("SetFmVolume=%f", value));
++        }
++    }
++#endif
++
+     return NO_ERROR;
  }
  
--OMX_BUFFERHEADERTYPE *OMXNodeInstance::findBufferHeader(OMX::buffer_id buffer) {
-+OMX_BUFFERHEADERTYPE *OMXNodeInstance::findBufferHeader(OMX::buffer_id buffer, OMX_U32 portIndex __unused) {
-     return (OMX_BUFFERHEADERTYPE *)(size_t)buffer;
- }
- 
 
 
 
 
-
-=======
->>>>>>> 1a38f7179312756366fc3933a400b286ac1a1a71

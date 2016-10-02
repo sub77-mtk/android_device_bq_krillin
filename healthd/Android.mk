@@ -10,3 +10,4 @@ LOCAL_C_INCLUDES := system/core/healthd bootable/recovery
 include $(BUILD_STATIC_LIBRARY)
 
 endif
+
