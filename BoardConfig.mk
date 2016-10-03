@@ -155,7 +155,7 @@ BOARD_SEPOLICY_DIRS += device/bq/krillin/sepolicy
 POLICYVERS := 26
 
 # Hack for build
-$(shell mkdir -p $(OUT)/obj/KERNEL_OBJ/usr)
+$(shell mkdir -p /mnt/and/cm/out/target/product/krillin/obj/KERNEL_OBJ/usr)
 
 # FMRadio
 MTK_FM_SUPPORT := yes
