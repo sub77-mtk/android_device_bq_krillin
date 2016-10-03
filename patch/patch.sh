@@ -7,17 +7,20 @@ CL_YLW="\033[33m"
 CL_BLU="\033[34m"
 CL_MAG="\033[35m"
 CL_CYN="\033[36m"
-PRT_INS := $(CL_GRN)
-PRT_IMG := $(CL_GRN)
 CL_RST="\033[0m"
+
+read -n1 -r -p "Press p to start patching..." key
+echo -e ""
+
+if [ "$key" = 'p' ]; then
 
 # Start patch
 patchthis=frameworks/av
-patchwhat="git fetch $patchdir && git pull"
+patchfrom=https://github.com/sub77-mtk/android_frameworks_av
 patchdir="$build_root/$patchthis"
-echo -e ${CL_BLU}"PATCHING $patchdir"${CL_RST}
+echo -e ${CL_BLU}"cd $patchdir"${CL_RST}
 cd $patchdir
-$patchwhat
+git fetch $patchfrom && git pull
 cd $build_root
 # End patch
 
@@ -82,3 +85,6 @@ done
 popd > /dev/null
 echo -e ${CL_RST}"----------------"${CL_RST}
 echo -e ${CL_GRN}"Applying patches: done"${CL_RST}
+else
+echo -e ${CL_RED}"Skipped patching"${CL_RST}
+fi
